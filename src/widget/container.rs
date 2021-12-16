@@ -1,4 +1,5 @@
 use super::Widget;
+use alloc::{boxed::Box, vec::Vec};
 use embedded_graphics::{
     prelude::*,
     primitives::{CornerRadii, PrimitiveStyleBuilder, Rectangle, RoundedRectangle},
@@ -17,33 +18,28 @@ pub struct Options<Color> {
     pub corner_radii: Option<CornerRadii>,
 }
 
-#[derive(Clone, Copy, Eq, PartialEq)]
-pub struct Container<Color> {
-    options: Options<Color>,
+pub struct Container<Display>
+where
+    Display: DrawTarget,
+{
+    options: Options<Display::Color>,
+    children: Vec<Box<dyn Widget<Display>>>,
 }
 
-impl<Color> Container<Color>
+impl<Display> Container<Display>
 where
-    Color: PixelColor,
+    Display: DrawTarget,
 {
-    pub fn new(options: Options<Color>) -> Self {
-        Self { options }
+    pub fn new(options: Options<Display::Color>, children: Vec<Box<dyn Widget<Display>>>) -> Self {
+        Self { options, children }
     }
-}
 
-impl<Color> Widget<Color> for Container<Color>
-where
-    Color: PixelColor,
-{
-    fn draw<Display, Error>(
+    fn draw_self(
         &self,
         display: &mut Display,
         origin: Point,
         size: Size,
-    ) -> Result<(), Error>
-    where
-        Display: DrawTarget<Color = Color, Error = Error>,
-    {
+    ) -> Result<(), Display::Error> {
         let mut style = PrimitiveStyleBuilder::new();
 
         if let Some(background_color) = self.options.background_color {
@@ -63,5 +59,40 @@ where
                 .draw(display),
             None => rectangle.into_styled(style).draw(display),
         }
+    }
+
+    fn draw_children(
+        &self,
+        display: &mut Display,
+        origin: Point,
+        max_size: Size,
+    ) -> Result<Size, Display::Error> {
+        let mut total_size = Size::new(max_size.width, 0);
+
+        for child in &self.children {
+            let current_origin = Point::new(origin.x, origin.y + (total_size.height as i32));
+            let remaining_size = Size::new(max_size.width, max_size.height - total_size.height);
+            let consumed_size = child.draw(display, current_origin, remaining_size)?;
+
+            total_size.width = total_size.width.max(consumed_size.width);
+            total_size.height += consumed_size.height;
+        }
+
+        Ok(total_size)
+    }
+}
+
+impl<Display> Widget<Display> for Container<Display>
+where
+    Display: DrawTarget,
+{
+    fn draw(
+        &self,
+        display: &mut Display,
+        origin: Point,
+        max_size: Size,
+    ) -> Result<Size, Display::Error> {
+        self.draw_self(display, origin, max_size)?;
+        self.draw_children(display, origin, max_size)
     }
 }
