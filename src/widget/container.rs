@@ -86,18 +86,18 @@ where
         origin: Point,
         max_size: Size,
     ) -> Result<Size, Display::Error> {
-        let mut total_size = Size::new(max_size.width, 0);
+        let mut current_size = Size::new(max_size.width, 0);
 
         for child in &self.options.children {
-            let current_origin = Point::new(origin.x, origin.y + (total_size.height as i32));
-            let remaining_size = Size::new(max_size.width, max_size.height - total_size.height);
+            let current_origin = Point::new(origin.x, origin.y + (current_size.height as i32));
+            let remaining_size = Size::new(max_size.width, max_size.height - current_size.height);
             let consumed_size = child.draw(display, current_origin, remaining_size)?;
 
-            total_size.width = total_size.width.max(consumed_size.width);
-            total_size.height += consumed_size.height;
+            current_size.width = current_size.width.max(consumed_size.width);
+            current_size.height += consumed_size.height;
         }
 
-        Ok(total_size)
+        Ok(current_size)
     }
 }
 
