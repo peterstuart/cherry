@@ -1,4 +1,5 @@
 use super::Widget;
+use alloc::{boxed::Box, vec, vec::Vec};
 use embedded_graphics::{
     prelude::*,
     primitives::{CornerRadii, PrimitiveStyleBuilder, Rectangle, RoundedRectangle},
@@ -10,40 +11,53 @@ pub struct Border<Color> {
     pub width: u32,
 }
 
-#[derive(Clone, Copy, Default, Eq, PartialEq)]
-pub struct Options<Color> {
-    pub background_color: Option<Color>,
-    pub border: Option<Border<Color>>,
-    pub corner_radii: Option<CornerRadii>,
-}
-
-#[derive(Clone, Copy, Eq, PartialEq)]
-pub struct Container<Color> {
-    options: Options<Color>,
-}
-
-impl<Color> Container<Color>
+pub struct Options<Display>
 where
-    Color: PixelColor,
+    Display: DrawTarget,
 {
-    pub fn new(options: Options<Color>) -> Self {
-        Self { options }
+    pub background_color: Option<Display::Color>,
+    pub border: Option<Border<Display::Color>>,
+    pub corner_radii: Option<CornerRadii>,
+    pub size: Option<Size>,
+    pub children: Vec<Box<dyn Widget<Display>>>,
+}
+
+impl<Display> Default for Options<Display>
+where
+    Display: DrawTarget,
+{
+    fn default() -> Self {
+        Self {
+            background_color: None,
+            border: None,
+            corner_radii: None,
+            size: None,
+            children: vec![],
+        }
     }
 }
 
-impl<Color> Widget<Color> for Container<Color>
+pub struct Container<Display>
 where
-    Color: PixelColor,
+    Display: DrawTarget,
 {
-    fn draw<Display, Error>(
+    options: Options<Display>,
+}
+
+impl<Display> Container<Display>
+where
+    Display: DrawTarget,
+{
+    pub fn new(options: Options<Display>) -> Self {
+        Self { options }
+    }
+
+    fn draw_self(
         &self,
         display: &mut Display,
         origin: Point,
         size: Size,
-    ) -> Result<(), Error>
-    where
-        Display: DrawTarget<Color = Color, Error = Error>,
-    {
+    ) -> Result<(), Display::Error> {
         let mut style = PrimitiveStyleBuilder::new();
 
         if let Some(background_color) = self.options.background_color {
@@ -55,6 +69,7 @@ where
         }
 
         let style = style.build();
+        let size = self.options.size.unwrap_or(size);
         let rectangle = Rectangle::new(origin, size);
 
         match self.options.corner_radii {
@@ -63,5 +78,41 @@ where
                 .draw(display),
             None => rectangle.into_styled(style).draw(display),
         }
+    }
+
+    fn draw_children(
+        &self,
+        display: &mut Display,
+        origin: Point,
+        max_size: Size,
+    ) -> Result<Size, Display::Error> {
+        let mut current_size = Size::new(max_size.width, 0);
+
+        for child in &self.options.children {
+            let current_origin = Point::new(origin.x, origin.y + (current_size.height as i32));
+            let remaining_size = Size::new(max_size.width, max_size.height - current_size.height);
+            let consumed_size = child.draw(display, current_origin, remaining_size)?;
+
+            current_size.width = current_size.width.max(consumed_size.width);
+            current_size.height += consumed_size.height;
+        }
+
+        Ok(current_size)
+    }
+}
+
+impl<Display> Widget<Display> for Container<Display>
+where
+    Display: DrawTarget,
+{
+    fn draw(
+        &self,
+        display: &mut Display,
+        origin: Point,
+        max_size: Size,
+    ) -> Result<Size, Display::Error> {
+        self.draw_self(display, origin, max_size)?;
+        let content_size = self.draw_children(display, origin, max_size)?;
+        Ok(self.options.size.unwrap_or(content_size))
     }
 }

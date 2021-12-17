@@ -14,4 +14,6 @@
 //! [simulator]: https://github.com/embedded-graphics/simulator
 //! [setup]: https://github.com/embedded-graphics/simulator#setup
 
+extern crate alloc;
+
 pub mod widget;

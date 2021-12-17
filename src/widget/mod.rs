@@ -1,15 +1,21 @@
 pub mod container;
 pub mod text;
 
+use alloc::boxed::Box;
 use embedded_graphics::prelude::*;
 
-pub trait Widget<Color> {
-    fn draw<Display, Error>(
+pub trait Widget<Display: DrawTarget> {
+    fn draw(
         &self,
         display: &mut Display,
         origin: Point,
-        size: Size,
-    ) -> Result<(), Error>
+        max_size: Size,
+    ) -> Result<Size, Display::Error>;
+
+    fn boxed(self) -> Box<dyn Widget<Display>>
     where
-        Display: DrawTarget<Color = Color, Error = Error>;
+        Self: 'static + Sized,
+    {
+        Box::new(self)
+    }
 }
