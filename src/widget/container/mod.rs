@@ -104,14 +104,24 @@ where
         &self,
         display: &mut Display,
         origin: Point,
-        _: Option<Size>,
+        size: Option<Size>,
     ) -> Result<(), Display::Error> {
+        let size = size.unwrap_or_else(|| self.intrinsic_size());
+
         let mut y: i32 = 0;
 
         for child in &self.options.children {
-            let child_origin = Point::new(origin.x, origin.y + y);
+            let child_size = child.intrinsic_size();
+
+            let offset = match self.options.alignment {
+                Alignment::Start => 0,
+                Alignment::Center => (size.width - child_size.width) / 2,
+                Alignment::End => size.width - child_size.width,
+            };
+
+            let child_origin = Point::new(origin.x + (offset as i32), origin.y + y);
             child.draw(display, child_origin, None)?;
-            y += child.intrinsic_size().height as i32;
+            y += child_size.height as i32;
         }
 
         Ok(())
