@@ -20,10 +20,10 @@ where
     pub alignment: Alignment,
     pub background_color: Option<Display::Color>,
     pub border: Option<Border<Display::Color>>,
-    pub corner_radii: Option<CornerRadii>,
-    pub width: Option<u32>,
-    pub height: Option<u32>,
     pub children: Vec<Box<dyn Widget<Display>>>,
+    pub corner_radii: Option<CornerRadii>,
+    pub height: Option<u32>,
+    pub width: Option<u32>,
 }
 
 impl<Display> Default for Options<Display>
