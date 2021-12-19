@@ -15,7 +15,7 @@ fn main() -> Result<(), Infallible> {
 
     let character_style = MonoTextStyle::new(&FONT_10X20, Rgb888::YELLOW);
     let widget = Text::new(Options { character_style }, "Hello");
-    widget.draw(&mut display, Point::new(20, 20), Size::new(100, 100))?;
+    widget.draw(&mut display, Point::new(20, 20), None)?;
 
     let output_settings = OutputSettingsBuilder::new().build();
     Window::new("Hello World", &output_settings).show_static(&display);

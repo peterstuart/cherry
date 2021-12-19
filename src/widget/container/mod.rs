@@ -1,24 +1,28 @@
+mod alignment;
+mod border;
+mod sizing;
+
+pub use alignment::Alignment;
+pub use border::Border;
+pub use sizing::Sizing;
+
 use super::Widget;
-use alloc::{boxed::Box, vec, vec::Vec};
+use alloc::{boxed::Box, vec::Vec};
 use embedded_graphics::{
     prelude::*,
     primitives::{CornerRadii, PrimitiveStyleBuilder, Rectangle, RoundedRectangle},
 };
 
-#[derive(Clone, Copy, Eq, PartialEq)]
-pub struct Border<Color> {
-    pub color: Color,
-    pub width: u32,
-}
-
 pub struct Options<Display>
 where
     Display: DrawTarget,
 {
+    pub alignment: Alignment,
     pub background_color: Option<Display::Color>,
     pub border: Option<Border<Display::Color>>,
     pub corner_radii: Option<CornerRadii>,
-    pub size: Option<Size>,
+    pub width: Option<u32>,
+    pub height: Option<u32>,
     pub children: Vec<Box<dyn Widget<Display>>>,
 }
 
@@ -28,11 +32,13 @@ where
 {
     fn default() -> Self {
         Self {
-            background_color: None,
-            border: None,
-            corner_radii: None,
-            size: None,
-            children: vec![],
+            alignment: Default::default(),
+            background_color: Default::default(),
+            border: Default::default(),
+            corner_radii: Default::default(),
+            width: Default::default(),
+            height: Default::default(),
+            children: Default::default(),
         }
     }
 }
@@ -52,12 +58,27 @@ where
         Self { options }
     }
 
+    fn content_size(&self) -> Size {
+        self.options
+            .children
+            .iter()
+            .fold(Size::zero(), |size, child| {
+                let child_size = child.intrinsic_size();
+                Size::new(
+                    size.width.max(child_size.width),
+                    size.height + child_size.height,
+                )
+            })
+    }
+
     fn draw_self(
         &self,
         display: &mut Display,
         origin: Point,
-        size: Size,
+        size: Option<Size>,
     ) -> Result<(), Display::Error> {
+        let size = size.unwrap_or_else(|| self.intrinsic_size());
+
         let mut style = PrimitiveStyleBuilder::new();
 
         if let Some(background_color) = self.options.background_color {
@@ -69,7 +90,6 @@ where
         }
 
         let style = style.build();
-        let size = self.options.size.unwrap_or(size);
         let rectangle = Rectangle::new(origin, size);
 
         match self.options.corner_radii {
@@ -84,20 +104,17 @@ where
         &self,
         display: &mut Display,
         origin: Point,
-        max_size: Size,
-    ) -> Result<Size, Display::Error> {
-        let mut current_size = Size::new(max_size.width, 0);
+        _: Option<Size>,
+    ) -> Result<(), Display::Error> {
+        let mut y: i32 = 0;
 
         for child in &self.options.children {
-            let current_origin = Point::new(origin.x, origin.y + (current_size.height as i32));
-            let remaining_size = Size::new(max_size.width, max_size.height - current_size.height);
-            let consumed_size = child.draw(display, current_origin, remaining_size)?;
-
-            current_size.width = current_size.width.max(consumed_size.width);
-            current_size.height += consumed_size.height;
+            let child_origin = Point::new(origin.x, origin.y + y);
+            child.draw(display, child_origin, None)?;
+            y += child.intrinsic_size().height as i32;
         }
 
-        Ok(current_size)
+        Ok(())
     }
 }
 
@@ -105,14 +122,22 @@ impl<Display> Widget<Display> for Container<Display>
 where
     Display: DrawTarget,
 {
+    fn intrinsic_size(&self) -> Size {
+        let content_size = self.content_size();
+
+        Size::new(
+            self.options.width.unwrap_or(content_size.width),
+            self.options.height.unwrap_or(content_size.height),
+        )
+    }
+
     fn draw(
         &self,
         display: &mut Display,
         origin: Point,
-        max_size: Size,
-    ) -> Result<Size, Display::Error> {
-        self.draw_self(display, origin, max_size)?;
-        let content_size = self.draw_children(display, origin, max_size)?;
-        Ok(self.options.size.unwrap_or(content_size))
+        size: Option<Size>,
+    ) -> Result<(), Display::Error> {
+        self.draw_self(display, origin, size)?;
+        self.draw_children(display, origin, size)
     }
 }
