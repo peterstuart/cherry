@@ -4,6 +4,8 @@ pub enum Justification {
     Center,
     End,
     SpaceBetween,
+    SpaceAround,
+    SpaceEvenly,
 }
 
 impl Default for Justification {
