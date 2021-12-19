@@ -22,7 +22,6 @@ fn main() -> Result<(), Infallible> {
 
     let inner_container = Container::new(Options {
         background_color: Some(Rgb888::BLUE),
-        width: Some(50),
         height: Some(50),
         ..Default::default()
     });
@@ -43,7 +42,7 @@ fn main() -> Result<(), Infallible> {
         ],
         ..Default::default()
     });
-    container.draw(&mut display, Point::new(20, 20), Some(Size::new(260, 260)))?;
+    container.draw(&mut display, Point::new(20, 20), Size::new(260, 260))?;
 
     let output_settings = OutputSettingsBuilder::new().build();
     Window::new("Hello World", &output_settings).show_static(&display);

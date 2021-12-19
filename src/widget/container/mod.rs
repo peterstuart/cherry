@@ -6,7 +6,7 @@ pub use alignment::Alignment;
 pub use border::Border;
 pub use sizing::Sizing;
 
-use super::Widget;
+use super::{IntrinsicSize, Widget};
 use alloc::{boxed::Box, vec::Vec};
 use embedded_graphics::{
     prelude::*,
@@ -58,16 +58,28 @@ where
         Self { options }
     }
 
-    fn content_size(&self) -> Size {
+    fn content_size(&self) -> IntrinsicSize {
         self.options
             .children
             .iter()
-            .fold(Size::zero(), |size, child| {
-                let child_size = child.intrinsic_size();
-                Size::new(
-                    size.width.max(child_size.width),
-                    size.height + child_size.height,
-                )
+            .fold(IntrinsicSize::none(), |size, widget| {
+                let widget_size = widget.intrinsic_size();
+
+                let width = match (size.width, widget_size.width) {
+                    (Some(width), Some(widget_width)) => Some(width.max(widget_width)),
+                    (Some(width), None) => Some(width),
+                    (None, Some(widget_width)) => Some(widget_width),
+                    (None, None) => None,
+                };
+
+                let height = match (size.height, widget_size.height) {
+                    (Some(height), Some(widget_height)) => Some(height + widget_height),
+                    (Some(height), None) => Some(height),
+                    (None, Some(widget_height)) => Some(widget_height),
+                    (None, None) => None,
+                };
+
+                IntrinsicSize::new(width, height)
             })
     }
 
@@ -75,10 +87,8 @@ where
         &self,
         display: &mut Display,
         origin: Point,
-        size: Option<Size>,
+        size: Size,
     ) -> Result<(), Display::Error> {
-        let size = size.unwrap_or_else(|| self.intrinsic_size());
-
         let mut style = PrimitiveStyleBuilder::new();
 
         if let Some(background_color) = self.options.background_color {
@@ -104,14 +114,14 @@ where
         &self,
         display: &mut Display,
         origin: Point,
-        size: Option<Size>,
+        size: Size,
     ) -> Result<(), Display::Error> {
-        let size = size.unwrap_or_else(|| self.intrinsic_size());
-
         let mut y: i32 = 0;
 
         for child in &self.options.children {
-            let child_size = child.intrinsic_size();
+            let child_size = child
+                .intrinsic_size()
+                .to_size_with_defaults(Size::new(size.width, 0));
 
             let offset = match self.options.alignment {
                 Alignment::Start => 0,
@@ -120,7 +130,7 @@ where
             };
 
             let child_origin = Point::new(origin.x + (offset as i32), origin.y + y);
-            child.draw(display, child_origin, None)?;
+            child.draw(display, child_origin, child_size)?;
             y += child_size.height as i32;
         }
 
@@ -132,21 +142,16 @@ impl<Display> Widget<Display> for Container<Display>
 where
     Display: DrawTarget,
 {
-    fn intrinsic_size(&self) -> Size {
+    fn intrinsic_size(&self) -> IntrinsicSize {
         let content_size = self.content_size();
 
-        Size::new(
-            self.options.width.unwrap_or(content_size.width),
-            self.options.height.unwrap_or(content_size.height),
+        IntrinsicSize::new(
+            self.options.width.or(content_size.width),
+            self.options.height.or(content_size.height),
         )
     }
 
-    fn draw(
-        &self,
-        display: &mut Display,
-        origin: Point,
-        size: Option<Size>,
-    ) -> Result<(), Display::Error> {
+    fn draw(&self, display: &mut Display, origin: Point, size: Size) -> Result<(), Display::Error> {
         self.draw_self(display, origin, size)?;
         self.draw_children(display, origin, size)
     }

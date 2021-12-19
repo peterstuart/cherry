@@ -1,21 +1,17 @@
 pub mod container;
 pub mod text;
 
+mod intrinsic_size;
+
+pub use intrinsic_size::IntrinsicSize;
+
 use alloc::boxed::Box;
 use embedded_graphics::prelude::*;
 
 pub trait Widget<Display: DrawTarget> {
-    /// Returns the intrinsic size of the widget, based on its contents.
-    fn intrinsic_size(&self) -> Size;
+    fn intrinsic_size(&self) -> IntrinsicSize;
 
-    /// Draws the widget with the provided `origin` and `size`. If no
-    /// `size` is provided, the widget uses its [intrinsic size][Widget::intrinsic_size].
-    fn draw(
-        &self,
-        display: &mut Display,
-        origin: Point,
-        size: Option<Size>,
-    ) -> Result<(), Display::Error>;
+    fn draw(&self, display: &mut Display, origin: Point, size: Size) -> Result<(), Display::Error>;
 
     fn boxed(self) -> Box<dyn Widget<Display>>
     where

@@ -1,4 +1,4 @@
-use super::Widget;
+use super::{IntrinsicSize, Widget};
 use embedded_graphics::{
     mono_font::MonoTextStyle,
     prelude::*,
@@ -39,16 +39,11 @@ where
     Color: PixelColor,
     Display: DrawTarget<Color = Color>,
 {
-    fn intrinsic_size(&self) -> Size {
-        self.text(Point::zero()).bounding_box().size
+    fn intrinsic_size(&self) -> IntrinsicSize {
+        self.text(Point::zero()).bounding_box().size.into()
     }
 
-    fn draw(
-        &self,
-        display: &mut Display,
-        origin: Point,
-        _: Option<Size>,
-    ) -> Result<(), Display::Error> {
+    fn draw(&self, display: &mut Display, origin: Point, _: Size) -> Result<(), Display::Error> {
         let text = self.text(origin);
         text.draw(display)?;
 
