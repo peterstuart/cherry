@@ -1,8 +1,10 @@
 mod alignment;
 mod border;
+mod justification;
 
 pub use alignment::Alignment;
 pub use border::Border;
+pub use justification::Justification;
 
 use super::{IntrinsicSize, Widget};
 use alloc::{boxed::Box, vec::Vec};
@@ -21,6 +23,7 @@ where
     pub children: Vec<Box<dyn Widget<Display>>>,
     pub corner_radii: Option<CornerRadii>,
     pub height: Option<u32>,
+    pub justification: Justification,
     pub width: Option<u32>,
 }
 
@@ -33,10 +36,11 @@ where
             alignment: Default::default(),
             background_color: Default::default(),
             border: Default::default(),
-            corner_radii: Default::default(),
-            width: Default::default(),
-            height: Default::default(),
             children: Default::default(),
+            corner_radii: Default::default(),
+            height: Default::default(),
+            justification: Default::default(),
+            width: Default::default(),
         }
     }
 }
@@ -114,7 +118,11 @@ where
         origin: Point,
         size: Size,
     ) -> Result<(), Display::Error> {
-        let mut y: i32 = 0;
+        let total_children_height = self.content_size().height.unwrap_or(0);
+        let mut y: i32 = match self.options.justification {
+            Justification::Start => 0,
+            Justification::End => size.height - total_children_height,
+        } as i32;
 
         for child in &self.options.children {
             let child_size = child
