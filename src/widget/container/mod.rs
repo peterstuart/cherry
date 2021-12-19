@@ -121,6 +121,7 @@ where
         let total_children_height = self.content_size().height.unwrap_or(0);
         let mut y: i32 = match self.options.justification {
             Justification::Start => 0,
+            Justification::Center => (size.height - total_children_height) / 2,
             Justification::End => size.height - total_children_height,
         } as i32;
 

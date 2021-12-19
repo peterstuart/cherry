@@ -1,6 +1,7 @@
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Justification {
     Start,
+    Center,
     End,
 }
 

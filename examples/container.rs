@@ -40,7 +40,7 @@ fn main() -> Result<(), Infallible> {
             inner_container.boxed(),
             text3.boxed(),
         ],
-        justification: Justification::End,
+        justification: Justification::Center,
         ..Default::default()
     });
     container.draw(&mut display, Point::new(20, 20), Size::new(260, 260))?;
