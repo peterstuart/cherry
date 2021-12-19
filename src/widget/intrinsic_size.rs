@@ -1,3 +1,4 @@
+use super::{axis_size::AxisSize, container::Axis};
 use embedded_graphics::prelude::*;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -31,6 +32,15 @@ impl IntrinsicSize {
             self.width.unwrap_or(default.width),
             self.height.unwrap_or(default.height),
         )
+    }
+}
+
+impl AxisSize<Option<u32>> for IntrinsicSize {
+    fn for_axis(&self, axis: Axis) -> Option<u32> {
+        match axis {
+            Axis::Horizontal => self.width,
+            Axis::Vertical => self.height,
+        }
     }
 }
 

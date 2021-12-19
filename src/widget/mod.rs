@@ -1,6 +1,7 @@
 pub mod container;
 pub mod text;
 
+mod axis_size;
 mod intrinsic_size;
 
 pub use intrinsic_size::IntrinsicSize;
