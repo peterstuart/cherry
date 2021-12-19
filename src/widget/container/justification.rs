@@ -3,6 +3,7 @@ pub enum Justification {
     Start,
     Center,
     End,
+    SpaceBetween,
 }
 
 impl Default for Justification {

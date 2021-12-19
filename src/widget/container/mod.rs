@@ -118,12 +118,23 @@ where
         origin: Point,
         size: Size,
     ) -> Result<(), Display::Error> {
+        let num_children = self.options.children.len() as u32;
         let total_children_height = self.content_size().height.unwrap_or(0);
-        let mut y: i32 = match self.options.justification {
-            Justification::Start => 0,
-            Justification::Center => (size.height - total_children_height) / 2,
-            Justification::End => size.height - total_children_height,
-        } as i32;
+        let unused_height = size.height - total_children_height;
+
+        let (mut current_y, space_between) = match self.options.justification {
+            Justification::Start => (0, 0),
+            Justification::Center => (unused_height / 2, 0),
+            Justification::End => (unused_height, 0),
+            Justification::SpaceBetween => (
+                0,
+                if num_children > 1 {
+                    unused_height / (num_children - 1)
+                } else {
+                    0
+                },
+            ),
+        };
 
         for child in &self.options.children {
             let child_size = child
@@ -136,9 +147,9 @@ where
                 Alignment::End => size.width - child_size.width,
             };
 
-            let child_origin = Point::new(origin.x + (offset as i32), origin.y + y);
+            let child_origin = Point::new(origin.x + (offset as i32), origin.y + current_y as i32);
             child.draw(display, child_origin, child_size)?;
-            y += child_size.height as i32;
+            current_y += child_size.height + space_between;
         }
 
         Ok(())
