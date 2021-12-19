@@ -22,11 +22,12 @@ fn main() -> Result<(), Infallible> {
     let text3 = Text::new(TextOptions { character_style }, "Line 3");
 
     let inner_container = Container::new(Options {
+        alignment: Alignment::Center,
         axis: Axis::Horizontal,
         children: vec![
-            colored_container(Rgb888::RED).boxed(),
-            colored_container(Rgb888::GREEN).boxed(),
-            colored_container(Rgb888::BLUE).boxed(),
+            colored_container(Rgb888::RED, 25).boxed(),
+            colored_container(Rgb888::GREEN, 40).boxed(),
+            colored_container(Rgb888::BLUE, 55).boxed(),
         ],
         justification: Justification::SpaceBetween,
         width: Some(200),
@@ -58,14 +59,14 @@ fn main() -> Result<(), Infallible> {
     Ok(())
 }
 
-fn colored_container<Display>(color: Display::Color) -> Container<Display>
+fn colored_container<Display>(color: Display::Color, size: u32) -> Container<Display>
 where
     Display: DrawTarget,
 {
     Container::new(Options {
         background_color: Some(color),
-        width: Some(50),
-        height: Some(50),
+        width: Some(size),
+        height: Some(size),
         ..Default::default()
     })
 }
