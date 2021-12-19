@@ -1,10 +1,8 @@
 mod alignment;
 mod border;
-mod sizing;
 
 pub use alignment::Alignment;
 pub use border::Border;
-pub use sizing::Sizing;
 
 use super::{IntrinsicSize, Widget};
 use alloc::{boxed::Box, vec::Vec};
