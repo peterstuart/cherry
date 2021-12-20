@@ -1,5 +1,5 @@
 use cherry::widget::{
-    container::{Alignment, Border, Container, Options},
+    container::{Alignment, Border, Container, Justification, Options},
     text::{Options as TextOptions, Text},
     Widget,
 };
@@ -40,6 +40,7 @@ fn main() -> Result<(), Infallible> {
             inner_container.boxed(),
             text3.boxed(),
         ],
+        justification: Justification::SpaceAround,
         ..Default::default()
     });
     container.draw(&mut display, Point::new(20, 20), Size::new(260, 260))?;
