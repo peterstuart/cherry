@@ -122,8 +122,15 @@ where
 
         let total_children_main_axis_dimension =
             self.content_size().for_axis(self.main_axis()).unwrap_or(0);
-        let unused_main_axis_dimension =
+        let extra_main_axis_dimension =
             size.for_axis(self.main_axis()) - total_children_main_axis_dimension;
+        let grow_total: u32 = self.options.children.iter().map(|child| child.grow()).sum();
+
+        let (unused_main_axis_dimension, grow_unit) = if grow_total > 0 {
+            (0, extra_main_axis_dimension / grow_total)
+        } else {
+            (extra_main_axis_dimension, 0)
+        };
 
         let (mut current_main_axis_pos, space) = match self.options.justification {
             Justification::Start => (0, 0),
@@ -148,7 +155,8 @@ where
         };
 
         for child in &self.options.children {
-            let child_size = child.intrinsic_size().to_size_with_defaults(Size::zero());
+            let mut child_size = child.intrinsic_size().to_size_with_defaults(Size::zero());
+            child_size.add_to_axis(grow_unit * child.grow(), self.main_axis());
 
             let cross_axis_offset = match self.options.alignment {
                 Alignment::Start => 0,
@@ -194,6 +202,10 @@ where
             self.options.width.or(total_size.width),
             self.options.height.or(total_size.height),
         )
+    }
+
+    fn grow(&self) -> u32 {
+        self.options.grow
     }
 
     fn draw(&self, display: &mut Display, origin: Point, size: Size) -> Result<(), Display::Error> {

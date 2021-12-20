@@ -45,6 +45,13 @@ impl AxisSize<Option<u32>> for IntrinsicSize {
             Axis::Vertical => self.height,
         }
     }
+
+    fn add_to_axis(&mut self, value: u32, axis: Axis) {
+        match axis {
+            Axis::Horizontal => self.width = self.width.map(|width| width + value),
+            Axis::Vertical => self.height = self.height.map(|height| height + value),
+        }
+    }
 }
 
 impl Inset for IntrinsicSize {
@@ -127,5 +134,35 @@ mod tests {
     fn from_size() {
         let intrinsic_size: IntrinsicSize = Size::new(1, 2).into();
         assert_eq!(intrinsic_size, IntrinsicSize::new(Some(1), Some(2)));
+    }
+
+    mod axis_size {
+        use super::super::*;
+
+        #[test]
+        fn for_axis() {
+            let intrinsic_size = IntrinsicSize::new(Some(1), Some(2));
+            assert_eq!(intrinsic_size.for_axis(Axis::Horizontal), Some(1));
+            assert_eq!(intrinsic_size.for_axis(Axis::Vertical), Some(2));
+        }
+
+        #[test]
+        fn add_to_axis() {
+            let mut intrinsic_size = IntrinsicSize::new(Some(1), Some(2));
+
+            intrinsic_size.add_to_axis(10, Axis::Horizontal);
+            assert_eq!(intrinsic_size, IntrinsicSize::new(Some(11), Some(2)));
+
+            intrinsic_size.add_to_axis(10, Axis::Vertical);
+            assert_eq!(intrinsic_size, IntrinsicSize::new(Some(11), Some(12)));
+
+            let mut intrinsic_size = IntrinsicSize::none();
+
+            intrinsic_size.add_to_axis(10, Axis::Horizontal);
+            assert_eq!(intrinsic_size, IntrinsicSize::none());
+
+            intrinsic_size.add_to_axis(10, Axis::Vertical);
+            assert_eq!(intrinsic_size, IntrinsicSize::none());
+        }
     }
 }
