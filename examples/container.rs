@@ -1,5 +1,5 @@
 use cherry::widget::{
-    container::{Border, Container, Options},
+    container::{Alignment, Border, Container, Options},
     text::{Options as TextOptions, Text},
     Widget,
 };
@@ -22,11 +22,12 @@ fn main() -> Result<(), Infallible> {
 
     let inner_container = Container::new(Options {
         background_color: Some(Rgb888::BLUE),
-        size: Some(Size::new(50, 50)),
+        height: Some(50),
         ..Default::default()
     });
 
     let container = Container::new(Options {
+        alignment: Alignment::Center,
         background_color: Some(Rgb888::RED),
         border: Some(Border {
             color: Rgb888::GREEN,
