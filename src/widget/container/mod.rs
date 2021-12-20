@@ -180,21 +180,30 @@ where
     Display: DrawTarget,
 {
     fn intrinsic_size(&self) -> IntrinsicSize {
-        let content_size = self.content_size().outset(self.options.padding);
+        let total_size = self
+            .content_size()
+            .outset(self.options.padding)
+            .outset(self.options.margin);
 
         IntrinsicSize::new(
-            self.options.width.or(content_size.width),
-            self.options.height.or(content_size.height),
+            self.options.width.or(total_size.width),
+            self.options.height.or(total_size.height),
         )
     }
 
     fn draw(&self, display: &mut Display, origin: Point, size: Size) -> Result<(), Display::Error> {
-        self.draw_self(display, origin, size)?;
-
-        let inset_origin = Point::new(
-            origin.x + self.options.padding.left as i32,
-            origin.y + self.options.padding.top as i32,
+        let box_origin = Point::new(
+            origin.x + self.options.margin.left as i32,
+            origin.y + self.options.margin.top as i32,
         );
-        self.draw_children(display, inset_origin, size.inset(self.options.padding))
+        let box_size = size.inset(self.options.margin);
+        self.draw_self(display, box_origin, box_size)?;
+
+        let content_origin = Point::new(
+            box_origin.x + self.options.padding.left as i32,
+            box_origin.y + self.options.padding.top as i32,
+        );
+        let content_size = box_size.inset(self.options.padding);
+        self.draw_children(display, content_origin, content_size)
     }
 }

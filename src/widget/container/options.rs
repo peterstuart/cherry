@@ -15,6 +15,7 @@ where
     pub corner_radii: Option<CornerRadii>,
     pub height: Option<u32>,
     pub justification: Justification,
+    pub margin: Insets,
     pub padding: Insets,
     pub width: Option<u32>,
 }
@@ -33,6 +34,7 @@ where
             corner_radii: Default::default(),
             height: Default::default(),
             justification: Default::default(),
+            margin: Default::default(),
             padding: Default::default(),
             width: Default::default(),
         }
