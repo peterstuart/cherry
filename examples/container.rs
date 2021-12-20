@@ -1,5 +1,5 @@
 use cherry::widget::{
-    container::{Alignment, Axis, Border, Container, Justification, Options},
+    container::{Alignment, Axis, Border, Container, Insets, Justification, Options},
     text::{Options as TextOptions, Text},
     Widget,
 };
@@ -24,12 +24,18 @@ fn main() -> Result<(), Infallible> {
     let inner_container = Container::new(Options {
         alignment: Alignment::Center,
         axis: Axis::Horizontal,
+        border: Some(Border {
+            color: Rgb888::BLACK,
+            width: 1,
+        }),
         children: vec![
             colored_container(Rgb888::RED, 25).boxed(),
             colored_container(Rgb888::GREEN, 40).boxed(),
             colored_container(Rgb888::BLUE, 55).boxed(),
         ],
+        corner_radii: Some(CornerRadii::new(Size::new(10, 10))),
         justification: Justification::SpaceBetween,
+        padding: Insets::all(10),
         width: Some(200),
         ..Default::default()
     });
@@ -41,13 +47,13 @@ fn main() -> Result<(), Infallible> {
             color: Rgb888::GREEN,
             width: 4,
         }),
-        corner_radii: Some(CornerRadii::new(Size::new(10, 10))),
         children: vec![
             text1.boxed(),
             text2.boxed(),
             inner_container.boxed(),
             text3.boxed(),
         ],
+        corner_radii: Some(CornerRadii::new(Size::new(10, 10))),
         justification: Justification::SpaceAround,
         ..Default::default()
     });
