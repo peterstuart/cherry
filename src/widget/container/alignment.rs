@@ -1,5 +1,6 @@
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Alignment {
+    Stretch,
     Start,
     Center,
     End,
@@ -7,6 +8,6 @@ pub enum Alignment {
 
 impl Default for Alignment {
     fn default() -> Self {
-        Self::Start
+        Self::Stretch
     }
 }
