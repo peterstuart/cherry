@@ -172,9 +172,7 @@ where
         };
 
         for child in &self.options.children {
-            let child_size = child
-                .intrinsic_size()
-                .to_size_with_defaults(Size::new(size.width, 0));
+            let child_size = child.intrinsic_size().to_size_with_defaults(Size::zero());
 
             let cross_axis_offset = match self.options.alignment {
                 Alignment::Start => 0,
