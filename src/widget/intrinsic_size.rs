@@ -1,4 +1,7 @@
-use super::{axis_size::AxisSize, container::Axis};
+use super::{
+    axis_size::AxisSize,
+    container::{Axis, Inset, Insets},
+};
 use embedded_graphics::prelude::*;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -40,6 +43,26 @@ impl AxisSize<Option<u32>> for IntrinsicSize {
         match axis {
             Axis::Horizontal => self.width,
             Axis::Vertical => self.height,
+        }
+    }
+}
+
+impl Inset for IntrinsicSize {
+    fn inset(&self, insets: Insets) -> Self {
+        Self {
+            width: self.width.map(|width| width - insets.left - insets.right),
+            height: self
+                .height
+                .map(|height| height - insets.top - insets.bottom),
+        }
+    }
+
+    fn outset(&self, insets: Insets) -> Self {
+        Self {
+            width: self.width.map(|width| width + insets.left + insets.right),
+            height: self
+                .height
+                .map(|height| height + insets.top + insets.bottom),
         }
     }
 }

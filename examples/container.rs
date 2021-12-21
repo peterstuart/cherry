@@ -1,5 +1,5 @@
 use cherry::widget::{
-    container::{Alignment, Axis, Border, Container, Justification, Options},
+    container::{Alignment, Axis, Border, Container, Insets, Justification, Options},
     text::{Options as TextOptions, Text},
     Widget,
 };
@@ -14,7 +14,8 @@ use embedded_graphics_simulator::{OutputSettingsBuilder, SimulatorDisplay, Windo
 use std::convert::Infallible;
 
 fn main() -> Result<(), Infallible> {
-    let mut display: SimulatorDisplay<Rgb888> = SimulatorDisplay::new(Size::new(300, 300));
+    let display_size = Size::new(300, 300);
+    let mut display: SimulatorDisplay<Rgb888> = SimulatorDisplay::new(display_size);
 
     let character_style = MonoTextStyle::new(&FONT_10X20, Rgb888::BLACK);
     let text1 = Text::new(TextOptions { character_style }, "Line 1");
@@ -24,12 +25,18 @@ fn main() -> Result<(), Infallible> {
     let inner_container = Container::new(Options {
         alignment: Alignment::Center,
         axis: Axis::Horizontal,
+        border: Some(Border {
+            color: Rgb888::BLACK,
+            width: 1,
+        }),
         children: vec![
             colored_container(Rgb888::RED, 25).boxed(),
             colored_container(Rgb888::GREEN, 40).boxed(),
             colored_container(Rgb888::BLUE, 55).boxed(),
         ],
+        corner_radii: Some(CornerRadii::new(Size::new(10, 10))),
         justification: Justification::SpaceBetween,
+        padding: Insets::all(10),
         width: Some(200),
         ..Default::default()
     });
@@ -41,17 +48,18 @@ fn main() -> Result<(), Infallible> {
             color: Rgb888::GREEN,
             width: 4,
         }),
-        corner_radii: Some(CornerRadii::new(Size::new(10, 10))),
         children: vec![
             text1.boxed(),
             text2.boxed(),
             inner_container.boxed(),
             text3.boxed(),
         ],
+        corner_radii: Some(CornerRadii::new(Size::new(10, 10))),
         justification: Justification::SpaceAround,
+        margin: Insets::all(20),
         ..Default::default()
     });
-    container.draw(&mut display, Point::new(20, 20), Size::new(260, 260))?;
+    container.draw(&mut display, Point::zero(), display_size)?;
 
     let output_settings = OutputSettingsBuilder::new().build();
     Window::new("Hello World", &output_settings).show_static(&display);

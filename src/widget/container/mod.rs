@@ -1,53 +1,22 @@
 mod alignment;
 mod axis;
 mod border;
+mod insets;
 mod justification;
+mod options;
 
 pub use alignment::Alignment;
 pub use axis::Axis;
 pub use border::Border;
+pub use insets::{Inset, Insets};
 pub use justification::Justification;
+pub use options::Options;
 
 use super::{axis_size::AxisSize, IntrinsicSize, Widget};
-use alloc::{boxed::Box, vec::Vec};
 use embedded_graphics::{
     prelude::*,
-    primitives::{CornerRadii, PrimitiveStyleBuilder, Rectangle, RoundedRectangle},
+    primitives::{PrimitiveStyleBuilder, Rectangle, RoundedRectangle},
 };
-
-pub struct Options<Display>
-where
-    Display: DrawTarget,
-{
-    pub alignment: Alignment,
-    pub axis: Axis,
-    pub background_color: Option<Display::Color>,
-    pub border: Option<Border<Display::Color>>,
-    pub children: Vec<Box<dyn Widget<Display>>>,
-    pub corner_radii: Option<CornerRadii>,
-    pub height: Option<u32>,
-    pub justification: Justification,
-    pub width: Option<u32>,
-}
-
-impl<Display> Default for Options<Display>
-where
-    Display: DrawTarget,
-{
-    fn default() -> Self {
-        Self {
-            alignment: Default::default(),
-            axis: Default::default(),
-            background_color: Default::default(),
-            border: Default::default(),
-            children: Default::default(),
-            corner_radii: Default::default(),
-            height: Default::default(),
-            justification: Default::default(),
-            width: Default::default(),
-        }
-    }
-}
 
 pub struct Container<Display>
 where
@@ -106,6 +75,10 @@ where
                     Axis::Vertical => IntrinsicSize::new(cross_axis_dimension, main_axis_dimension),
                 }
             })
+    }
+
+    fn border_width(&self) -> u32 {
+        self.options.border.map_or(0, |border| border.width)
     }
 
     fn draw_self(
@@ -211,16 +184,40 @@ where
     Display: DrawTarget,
 {
     fn intrinsic_size(&self) -> IntrinsicSize {
-        let content_size = self.content_size();
+        let total_size = self
+            .content_size()
+            .outset(self.options.padding)
+            .outset(Insets::all(self.border_width()))
+            .outset(self.options.margin);
 
         IntrinsicSize::new(
-            self.options.width.or(content_size.width),
-            self.options.height.or(content_size.height),
+            self.options.width.or(total_size.width),
+            self.options.height.or(total_size.height),
         )
     }
 
     fn draw(&self, display: &mut Display, origin: Point, size: Size) -> Result<(), Display::Error> {
-        self.draw_self(display, origin, size)?;
-        self.draw_children(display, origin, size)
+        let box_origin = Point::new(
+            origin.x + self.options.margin.left as i32,
+            origin.y + self.options.margin.top as i32,
+        );
+
+        // outer half of the border
+        let outer_border = Insets::all(self.border_width() / 2);
+
+        let box_size = size.inset(self.options.margin).inset(outer_border);
+        self.draw_self(display, box_origin, box_size)?;
+
+        // inner half of the border (the inner half gets the remainder
+        // when the border width isn't divisble by 2)
+        let inner_border_width = self.border_width() / 2 + self.border_width() % 2;
+        let inner_border = Insets::all(inner_border_width);
+
+        let content_origin = Point::new(
+            box_origin.x + inner_border_width as i32 + self.options.padding.left as i32,
+            box_origin.y + inner_border_width as i32 + self.options.padding.top as i32,
+        );
+        let content_size = box_size.inset(inner_border).inset(self.options.padding);
+        self.draw_children(display, content_origin, content_size)
     }
 }
