@@ -161,7 +161,10 @@ where
                 _ => Size::zero(),
             };
 
-            let mut child_size = child.intrinsic_size().to_size_with_defaults(default_size);
+            let mut child_size = child
+                .intrinsic_size()
+                .to_size_with_defaults(default_size)
+                .component_min(size);
             child_size.add_to_axis(grow_unit * child.grow(), self.main_axis());
 
             let cross_axis_offset = match self.options.alignment {
