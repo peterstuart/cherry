@@ -79,7 +79,7 @@ where
             .fold(IntrinsicSize::none(), |size, widget| {
                 let widget_size = widget.intrinsic_size();
 
-                let cross_axis_size = match (
+                let cross_axis_dimension = match (
                     size.for_axis(self.cross_axis()),
                     widget_size.for_axis(self.cross_axis()),
                 ) {
@@ -89,7 +89,7 @@ where
                     (None, None) => None,
                 };
 
-                let main_axis_size = match (
+                let main_axis_dimension = match (
                     size.for_axis(self.main_axis()),
                     widget_size.for_axis(self.main_axis()),
                 ) {
@@ -100,8 +100,10 @@ where
                 };
 
                 match self.main_axis() {
-                    Axis::Horizontal => IntrinsicSize::new(main_axis_size, cross_axis_size),
-                    Axis::Vertical => IntrinsicSize::new(cross_axis_size, main_axis_size),
+                    Axis::Horizontal => {
+                        IntrinsicSize::new(main_axis_dimension, cross_axis_dimension)
+                    }
+                    Axis::Vertical => IntrinsicSize::new(cross_axis_dimension, main_axis_dimension),
                 }
             })
     }
@@ -145,28 +147,29 @@ where
             return Ok(());
         }
 
-        let total_children_main_axis_size =
+        let total_children_main_axis_dimension =
             self.content_size().for_axis(self.main_axis()).unwrap_or(0);
-        let unused_main_axis_size = size.for_axis(self.main_axis()) - total_children_main_axis_size;
+        let unused_main_axis_dimension =
+            size.for_axis(self.main_axis()) - total_children_main_axis_dimension;
 
         let (mut current_main_axis_pos, space) = match self.options.justification {
             Justification::Start => (0, 0),
-            Justification::Center => (unused_main_axis_size / 2, 0),
-            Justification::End => (unused_main_axis_size, 0),
+            Justification::Center => (unused_main_axis_dimension / 2, 0),
+            Justification::End => (unused_main_axis_dimension, 0),
             Justification::SpaceBetween => {
                 let space = if num_children > 1 {
-                    unused_main_axis_size / (num_children - 1)
+                    unused_main_axis_dimension / (num_children - 1)
                 } else {
                     0
                 };
                 (0, space)
             }
             Justification::SpaceAround => {
-                let space = unused_main_axis_size / num_children;
+                let space = unused_main_axis_dimension / num_children;
                 (space / 2, space)
             }
             Justification::SpaceEvenly => {
-                let space = unused_main_axis_size / (num_children + 1);
+                let space = unused_main_axis_dimension / (num_children + 1);
                 (space, space)
             }
         };
