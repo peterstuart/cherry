@@ -77,6 +77,10 @@ where
             })
     }
 
+    fn border_width(&self) -> u32 {
+        self.options.border.map_or(0, |border| border.width)
+    }
+
     fn draw_self(
         &self,
         display: &mut Display,
@@ -183,6 +187,7 @@ where
         let total_size = self
             .content_size()
             .outset(self.options.padding)
+            .outset(Insets::all(self.border_width()))
             .outset(self.options.margin);
 
         IntrinsicSize::new(
@@ -196,14 +201,23 @@ where
             origin.x + self.options.margin.left as i32,
             origin.y + self.options.margin.top as i32,
         );
-        let box_size = size.inset(self.options.margin);
+
+        // outer half of the border
+        let outer_border = Insets::all(self.border_width() / 2);
+
+        let box_size = size.inset(self.options.margin).inset(outer_border);
         self.draw_self(display, box_origin, box_size)?;
 
+        // inner half of the border (the inner half gets the remainder
+        // when the border width isn't divisble by 2)
+        let inner_border_width = self.border_width() / 2 + self.border_width() % 2;
+        let inner_border = Insets::all(inner_border_width);
+
         let content_origin = Point::new(
-            box_origin.x + self.options.padding.left as i32,
-            box_origin.y + self.options.padding.top as i32,
+            box_origin.x + inner_border_width as i32 + self.options.padding.left as i32,
+            box_origin.y + inner_border_width as i32 + self.options.padding.top as i32,
         );
-        let content_size = box_size.inset(self.options.padding);
+        let content_size = box_size.inset(inner_border).inset(self.options.padding);
         self.draw_children(display, content_origin, content_size)
     }
 }
