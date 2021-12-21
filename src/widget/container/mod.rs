@@ -1,12 +1,14 @@
 mod alignment;
+mod axis;
 mod border;
 mod justification;
 
 pub use alignment::Alignment;
+pub use axis::Axis;
 pub use border::Border;
 pub use justification::Justification;
 
-use super::{IntrinsicSize, Widget};
+use super::{axis_size::AxisSize, IntrinsicSize, Widget};
 use alloc::{boxed::Box, vec::Vec};
 use embedded_graphics::{
     prelude::*,
@@ -18,6 +20,7 @@ where
     Display: DrawTarget,
 {
     pub alignment: Alignment,
+    pub axis: Axis,
     pub background_color: Option<Display::Color>,
     pub border: Option<Border<Display::Color>>,
     pub children: Vec<Box<dyn Widget<Display>>>,
@@ -34,6 +37,7 @@ where
     fn default() -> Self {
         Self {
             alignment: Default::default(),
+            axis: Default::default(),
             background_color: Default::default(),
             border: Default::default(),
             children: Default::default(),
@@ -60,6 +64,14 @@ where
         Self { options }
     }
 
+    fn main_axis(&self) -> Axis {
+        self.options.axis
+    }
+
+    fn cross_axis(&self) -> Axis {
+        self.options.axis.opposite()
+    }
+
     fn content_size(&self) -> IntrinsicSize {
         self.options
             .children
@@ -67,21 +79,32 @@ where
             .fold(IntrinsicSize::none(), |size, widget| {
                 let widget_size = widget.intrinsic_size();
 
-                let width = match (size.width, widget_size.width) {
-                    (Some(width), Some(widget_width)) => Some(width.max(widget_width)),
-                    (Some(width), None) => Some(width),
-                    (None, Some(widget_width)) => Some(widget_width),
+                let cross_axis_dimension = match (
+                    size.for_axis(self.cross_axis()),
+                    widget_size.for_axis(self.cross_axis()),
+                ) {
+                    (Some(size), Some(widget_size)) => Some(size.max(widget_size)),
+                    (Some(size), None) => Some(size),
+                    (None, Some(widget_size)) => Some(widget_size),
                     (None, None) => None,
                 };
 
-                let height = match (size.height, widget_size.height) {
-                    (Some(height), Some(widget_height)) => Some(height + widget_height),
-                    (Some(height), None) => Some(height),
-                    (None, Some(widget_height)) => Some(widget_height),
+                let main_axis_dimension = match (
+                    size.for_axis(self.main_axis()),
+                    widget_size.for_axis(self.main_axis()),
+                ) {
+                    (Some(size), Some(widget_size)) => Some(size + widget_size),
+                    (Some(size), None) => Some(size),
+                    (None, Some(widget_size)) => Some(widget_size),
                     (None, None) => None,
                 };
 
-                IntrinsicSize::new(width, height)
+                match self.main_axis() {
+                    Axis::Horizontal => {
+                        IntrinsicSize::new(main_axis_dimension, cross_axis_dimension)
+                    }
+                    Axis::Vertical => IntrinsicSize::new(cross_axis_dimension, main_axis_dimension),
+                }
             })
     }
 
@@ -124,45 +147,59 @@ where
             return Ok(());
         }
 
-        let total_children_height = self.content_size().height.unwrap_or(0);
-        let unused_height = size.height - total_children_height;
+        let total_children_main_axis_dimension =
+            self.content_size().for_axis(self.main_axis()).unwrap_or(0);
+        let unused_main_axis_dimension =
+            size.for_axis(self.main_axis()) - total_children_main_axis_dimension;
 
-        let (mut current_y, space) = match self.options.justification {
+        let (mut current_main_axis_pos, space) = match self.options.justification {
             Justification::Start => (0, 0),
-            Justification::Center => (unused_height / 2, 0),
-            Justification::End => (unused_height, 0),
+            Justification::Center => (unused_main_axis_dimension / 2, 0),
+            Justification::End => (unused_main_axis_dimension, 0),
             Justification::SpaceBetween => {
                 let space = if num_children > 1 {
-                    unused_height / (num_children - 1)
+                    unused_main_axis_dimension / (num_children - 1)
                 } else {
                     0
                 };
                 (0, space)
             }
             Justification::SpaceAround => {
-                let space = unused_height / num_children;
+                let space = unused_main_axis_dimension / num_children;
                 (space / 2, space)
             }
             Justification::SpaceEvenly => {
-                let space = unused_height / (num_children + 1);
+                let space = unused_main_axis_dimension / (num_children + 1);
                 (space, space)
             }
         };
 
         for child in &self.options.children {
-            let child_size = child
-                .intrinsic_size()
-                .to_size_with_defaults(Size::new(size.width, 0));
+            let child_size = child.intrinsic_size().to_size_with_defaults(Size::zero());
 
-            let offset = match self.options.alignment {
+            let cross_axis_offset = match self.options.alignment {
                 Alignment::Start => 0,
-                Alignment::Center => (size.width - child_size.width) / 2,
-                Alignment::End => size.width - child_size.width,
+                Alignment::Center => {
+                    (size.for_axis(self.cross_axis()) - child_size.for_axis(self.cross_axis())) / 2
+                }
+                Alignment::End => {
+                    size.for_axis(self.cross_axis()) - child_size.for_axis(self.cross_axis())
+                }
             };
 
-            let child_origin = Point::new(origin.x + (offset as i32), origin.y + current_y as i32);
+            let child_origin = match self.main_axis() {
+                Axis::Horizontal => Point::new(
+                    origin.x + current_main_axis_pos as i32,
+                    origin.y + cross_axis_offset as i32,
+                ),
+                Axis::Vertical => Point::new(
+                    origin.x + cross_axis_offset as i32,
+                    origin.y + current_main_axis_pos as i32,
+                ),
+            };
+
             child.draw(display, child_origin, child_size)?;
-            current_y += child_size.height + space;
+            current_main_axis_pos += child_size.for_axis(self.main_axis()) + space;
         }
 
         Ok(())
