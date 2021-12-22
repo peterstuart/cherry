@@ -6,21 +6,21 @@ use embedded_graphics::{
 };
 
 #[derive(Clone, Copy)]
-pub struct Options<Color> {
-    pub character_style: MonoTextStyle<'static, Color>,
+pub struct Options<'font, Color> {
+    pub character_style: MonoTextStyle<'font, Color>,
 }
 
 #[derive(Clone, Copy)]
-pub struct Text<Color> {
-    options: Options<Color>,
-    text: &'static str,
+pub struct Text<'font, 'text, Color> {
+    options: Options<'font, Color>,
+    text: &'text str,
 }
 
-impl<Color> Text<Color>
+impl<'font, 'text, Color> Text<'font, 'text, Color>
 where
     Color: PixelColor,
 {
-    pub fn new(options: Options<Color>, text: &'static str) -> Self {
+    pub fn new(options: Options<'font, Color>, text: &'text str) -> Self {
         Self { options, text }
     }
 
@@ -34,7 +34,7 @@ where
     }
 }
 
-impl<Color, Display> Widget<Display> for Text<Color>
+impl<'font, 'text, Color, Display> Widget<Display> for Text<'font, 'text, Color>
 where
     Color: PixelColor,
     Display: DrawTarget<Color = Color>,
