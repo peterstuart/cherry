@@ -160,7 +160,12 @@ where
         };
 
         for child in &self.options.children {
-            let default_size = match (self.options.alignment, self.main_axis()) {
+            let child_alignment = child
+                .layout_options()
+                .alignment
+                .unwrap_or(self.options.alignment);
+
+            let default_size = match (child_alignment, self.main_axis()) {
                 (Alignment::Stretch, Axis::Horizontal) => Size::new(0, size.height),
                 (Alignment::Stretch, Axis::Vertical) => Size::new(size.width, 0),
                 _ => Size::zero(),
@@ -172,7 +177,7 @@ where
                 .component_min(size);
             child_size.add_to_axis(grow_unit * child.layout_options().grow, self.main_axis());
 
-            let cross_axis_offset = match self.options.alignment {
+            let cross_axis_offset = match child_alignment {
                 Alignment::Stretch | Alignment::Start => 0,
                 Alignment::Center => {
                     (size.for_axis(self.cross_axis()) - child_size.for_axis(self.cross_axis())) / 2

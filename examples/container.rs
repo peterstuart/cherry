@@ -55,10 +55,9 @@ fn main() -> Result<(), Infallible> {
     let yellow_box = Container::new(Options {
         background_color: Some(Rgb888::YELLOW),
         layout_options: LayoutOptions {
+            alignment: Some(Alignment::Stretch),
             grow: 1,
-            ..Default::default()
         },
-        width: Some(100),
         ..Default::default()
     });
 
