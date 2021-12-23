@@ -1,7 +1,4 @@
-use cherry::widget::{
-    text::{Options, Text},
-    Widget,
-};
+use cherry::widget::{text::Text, Widget};
 use embedded_graphics::{
     mono_font::{ascii::FONT_10X20, MonoTextStyle},
     pixelcolor::Rgb888,
@@ -14,13 +11,7 @@ fn main() -> Result<(), Infallible> {
     let mut display: SimulatorDisplay<Rgb888> = SimulatorDisplay::new(Size::new(300, 300));
 
     let character_style = MonoTextStyle::new(&FONT_10X20, Rgb888::YELLOW);
-    let widget = Text::new(
-        Options {
-            character_style,
-            layout_options: Default::default(),
-        },
-        "Hello",
-    );
+    let widget = Text::new("Hello", character_style);
     widget.draw(&mut display, Point::new(20, 20), Size::new(100, 100))?;
 
     let output_settings = OutputSettingsBuilder::new().build();

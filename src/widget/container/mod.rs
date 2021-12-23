@@ -3,47 +3,80 @@ mod axis;
 mod border;
 mod insets;
 mod justification;
-mod options;
 
 pub use alignment::Alignment;
 pub use axis::Axis;
 pub use border::Border;
 pub use insets::{Inset, Insets};
 pub use justification::Justification;
-pub use options::Options;
 
-use super::{axis_size::AxisSize, IntrinsicSize, Widget};
+use super::{axis_size::AxisSize, IntrinsicSize, LayoutOptions, Widget};
+use alloc::{boxed::Box, vec::Vec};
+use cherry_macros::Builder;
 use embedded_graphics::{
     prelude::*,
-    primitives::{PrimitiveStyleBuilder, Rectangle, RoundedRectangle},
+    primitives::{CornerRadii, PrimitiveStyleBuilder, Rectangle, RoundedRectangle},
 };
 
+#[derive(Builder)]
 pub struct Container<Display>
 where
     Display: DrawTarget,
 {
-    options: Options<Display>,
+    alignment: Alignment,
+    axis: Axis,
+    background_color: Option<Display::Color>,
+    border: Option<Border<Display::Color>>,
+    children: Vec<Box<dyn Widget<Display>>>,
+    corner_radii: Option<CornerRadii>,
+    height: Option<u32>,
+    justification: Justification,
+    layout_options: LayoutOptions,
+    margin: Insets,
+    padding: Insets,
+    width: Option<u32>,
+}
+
+impl<Display> Default for Container<Display>
+where
+    Display: DrawTarget,
+{
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<Display> Container<Display>
 where
     Display: DrawTarget,
 {
-    pub fn new(options: Options<Display>) -> Self {
-        Self { options }
+    pub fn new() -> Self {
+        Self {
+            alignment: Default::default(),
+            axis: Default::default(),
+            background_color: Default::default(),
+            border: Default::default(),
+            children: Default::default(),
+            corner_radii: Default::default(),
+            height: Default::default(),
+            justification: Default::default(),
+            layout_options: Default::default(),
+            margin: Default::default(),
+            padding: Default::default(),
+            width: Default::default(),
+        }
     }
 
     fn main_axis(&self) -> Axis {
-        self.options.axis
+        self.axis
     }
 
     fn cross_axis(&self) -> Axis {
-        self.options.axis.opposite()
+        self.axis.opposite()
     }
 
     fn content_size(&self) -> IntrinsicSize {
-        self.options
-            .children
+        self.children
             .iter()
             .fold(IntrinsicSize::none(), |size, widget| {
                 let widget_size = widget.intrinsic_size();
@@ -78,7 +111,7 @@ where
     }
 
     fn border_width(&self) -> u32 {
-        self.options.border.map_or(0, |border| border.width)
+        self.border.map_or(0, |border| border.width)
     }
 
     fn draw_self(
@@ -89,18 +122,18 @@ where
     ) -> Result<(), Display::Error> {
         let mut style = PrimitiveStyleBuilder::new();
 
-        if let Some(background_color) = self.options.background_color {
+        if let Some(background_color) = self.background_color {
             style = style.fill_color(background_color);
         }
 
-        if let Some(border) = self.options.border {
+        if let Some(border) = self.border {
             style = style.stroke_color(border.color).stroke_width(border.width);
         }
 
         let style = style.build();
         let rectangle = Rectangle::new(origin, size);
 
-        match self.options.corner_radii {
+        match self.corner_radii {
             Some(corner_radii) => RoundedRectangle::new(rectangle, corner_radii)
                 .into_styled(style)
                 .draw(display),
@@ -114,7 +147,7 @@ where
         origin: Point,
         size: Size,
     ) -> Result<(), Display::Error> {
-        let num_children = self.options.children.len() as u32;
+        let num_children = self.children.len() as u32;
 
         if num_children == 0 {
             return Ok(());
@@ -125,7 +158,6 @@ where
         let extra_main_axis_dimension =
             size.for_axis(self.main_axis()) - total_children_main_axis_dimension;
         let grow_total: u32 = self
-            .options
             .children
             .iter()
             .map(|child| child.layout_options().grow)
@@ -137,7 +169,7 @@ where
             (extra_main_axis_dimension, 0)
         };
 
-        let (mut current_main_axis_pos, space) = match self.options.justification {
+        let (mut current_main_axis_pos, space) = match self.justification {
             Justification::Start => (0, 0),
             Justification::Center => (unused_main_axis_dimension / 2, 0),
             Justification::End => (unused_main_axis_dimension, 0),
@@ -159,11 +191,8 @@ where
             }
         };
 
-        for child in &self.options.children {
-            let child_alignment = child
-                .layout_options()
-                .alignment
-                .unwrap_or(self.options.alignment);
+        for child in &self.children {
+            let child_alignment = child.layout_options().alignment.unwrap_or(self.alignment);
 
             let default_size = match (child_alignment, self.main_axis()) {
                 (Alignment::Stretch, Axis::Horizontal) => Size::new(0, size.height),
@@ -213,30 +242,30 @@ where
     fn intrinsic_size(&self) -> IntrinsicSize {
         let total_size = self
             .content_size()
-            .outset(self.options.padding)
+            .outset(self.padding)
             .outset(Insets::all(self.border_width()))
-            .outset(self.options.margin);
+            .outset(self.margin);
 
         IntrinsicSize::new(
-            self.options.width.or(total_size.width),
-            self.options.height.or(total_size.height),
+            self.width.or(total_size.width),
+            self.height.or(total_size.height),
         )
     }
 
-    fn layout_options(&self) -> super::LayoutOptions {
-        self.options.layout_options
+    fn layout_options(&self) -> LayoutOptions {
+        self.layout_options
     }
 
     fn draw(&self, display: &mut Display, origin: Point, size: Size) -> Result<(), Display::Error> {
         let box_origin = Point::new(
-            origin.x + self.options.margin.left as i32,
-            origin.y + self.options.margin.top as i32,
+            origin.x + self.margin.left as i32,
+            origin.y + self.margin.top as i32,
         );
 
         // outer half of the border
         let outer_border = Insets::all(self.border_width() / 2);
 
-        let box_size = size.inset(self.options.margin).inset(outer_border);
+        let box_size = size.inset(self.margin).inset(outer_border);
         self.draw_self(display, box_origin, box_size)?;
 
         // inner half of the border (the inner half gets the remainder
@@ -245,10 +274,10 @@ where
         let inner_border = Insets::all(inner_border_width);
 
         let content_origin = Point::new(
-            box_origin.x + inner_border_width as i32 + self.options.padding.left as i32,
-            box_origin.y + inner_border_width as i32 + self.options.padding.top as i32,
+            box_origin.x + inner_border_width as i32 + self.padding.left as i32,
+            box_origin.y + inner_border_width as i32 + self.padding.top as i32,
         );
-        let content_size = box_size.inset(inner_border).inset(self.options.padding);
+        let content_size = box_size.inset(inner_border).inset(self.padding);
         self.draw_children(display, content_origin, content_size)
     }
 }
