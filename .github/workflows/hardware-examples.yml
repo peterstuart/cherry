@@ -1,0 +1,37 @@
+name: lib/examples
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ "*" ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+            examples/ssd1306/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    
+      - name: Install nightly toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          target: thumbv7em-none-eabihf
+
+      - name: Install dependencies
+        run: sudo apt install libsdl2-dev
+
+      - name: rustfmt
+        run: cd examples/ssd1306 && cargo fmt -- --check
+        
+      - name: clippy
+        run: cd examples/ssd1306 && cargo clippy -- -D warnings
