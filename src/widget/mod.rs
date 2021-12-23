@@ -12,6 +12,10 @@ use embedded_graphics::prelude::*;
 pub trait Widget<Display: DrawTarget> {
     fn intrinsic_size(&self) -> IntrinsicSize;
 
+    fn grow(&self) -> u32 {
+        0
+    }
+
     fn draw(&self, display: &mut Display, origin: Point, size: Size) -> Result<(), Display::Error>;
 
     fn boxed(self) -> Box<dyn Widget<Display>>

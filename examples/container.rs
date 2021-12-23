@@ -20,9 +20,8 @@ fn main() -> Result<(), Infallible> {
     let character_style = MonoTextStyle::new(&FONT_10X20, Rgb888::BLACK);
     let text1 = Text::new(TextOptions { character_style }, "Line 1");
     let text2 = Text::new(TextOptions { character_style }, "Line 2");
-    let text3 = Text::new(TextOptions { character_style }, "Line 3");
 
-    let inner_container = Container::new(Options {
+    let rgb_swatch = Container::new(Options {
         alignment: Alignment::Center,
         axis: Axis::Horizontal,
         border: Some(Border {
@@ -41,6 +40,20 @@ fn main() -> Result<(), Infallible> {
         ..Default::default()
     });
 
+    let yellow_box = Container::new(Options {
+        background_color: Some(Rgb888::YELLOW),
+        grow: 1,
+        width: Some(100),
+        ..Default::default()
+    });
+
+    let magenta_box = Container::new(Options {
+        background_color: Some(Rgb888::MAGENTA),
+        grow: 2,
+        width: Some(100),
+        ..Default::default()
+    });
+
     let container = Container::new(Options {
         alignment: Alignment::Center,
         background_color: Some(Rgb888::WHITE),
@@ -51,8 +64,9 @@ fn main() -> Result<(), Infallible> {
         children: vec![
             text1.boxed(),
             text2.boxed(),
-            inner_container.boxed(),
-            text3.boxed(),
+            rgb_swatch.boxed(),
+            yellow_box.boxed(),
+            magenta_box.boxed(),
         ],
         corner_radii: Some(CornerRadii::new(Size::new(10, 10))),
         justification: Justification::SpaceAround,
