@@ -4,6 +4,8 @@ The structure for this example was generated using [knurling-rs/app-template](ht
 
 ## Setup
 
+This example requires the nightly version of Rust.
+
 ### Software
 
 #### 1. `flip-link`:
