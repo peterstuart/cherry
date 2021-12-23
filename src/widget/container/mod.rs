@@ -155,11 +155,17 @@ where
         };
 
         for child in &self.options.children {
-            let mut child_size = child.intrinsic_size().to_size_with_defaults(Size::zero());
+            let default_size = match (self.options.alignment, self.main_axis()) {
+                (Alignment::Stretch, Axis::Horizontal) => Size::new(0, size.height),
+                (Alignment::Stretch, Axis::Vertical) => Size::new(size.width, 0),
+                _ => Size::zero(),
+            };
+
+            let mut child_size = child.intrinsic_size().to_size_with_defaults(default_size);
             child_size.add_to_axis(grow_unit * child.grow(), self.main_axis());
 
             let cross_axis_offset = match self.options.alignment {
-                Alignment::Start => 0,
+                Alignment::Stretch | Alignment::Start => 0,
                 Alignment::Center => {
                     (size.for_axis(self.cross_axis()) - child_size.for_axis(self.cross_axis())) / 2
                 }
