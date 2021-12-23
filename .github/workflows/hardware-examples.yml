@@ -1,4 +1,4 @@
-name: lib/examples
+name: hardware-examples
 on:
   push:
     branches: [ main ]
@@ -26,6 +26,8 @@ jobs:
         with:
           toolchain: nightly
           target: thumbv7em-none-eabihf
+          override: true
+          components: rustfmt, clippy
 
       - name: Install dependencies
         run: sudo apt install libsdl2-dev
