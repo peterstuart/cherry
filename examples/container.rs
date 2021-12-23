@@ -1,7 +1,7 @@
 use cherry::widget::{
     container::{Alignment, Axis, Border, Container, Insets, Justification, Options},
     text::{Options as TextOptions, Text},
-    Widget,
+    LayoutOptions, Widget,
 };
 use embedded_graphics::{
     draw_target::DrawTarget,
@@ -18,8 +18,20 @@ fn main() -> Result<(), Infallible> {
     let mut display: SimulatorDisplay<Rgb888> = SimulatorDisplay::new(display_size);
 
     let character_style = MonoTextStyle::new(&FONT_10X20, Rgb888::BLACK);
-    let text1 = Text::new(TextOptions { character_style }, "Line 1");
-    let text2 = Text::new(TextOptions { character_style }, "Line 2");
+    let text1 = Text::new(
+        TextOptions {
+            character_style,
+            layout_options: Default::default(),
+        },
+        "Line 1",
+    );
+    let text2 = Text::new(
+        TextOptions {
+            character_style,
+            layout_options: Default::default(),
+        },
+        "Line 2",
+    );
 
     let rgb_swatch = Container::new(Options {
         alignment: Alignment::Center,
@@ -42,14 +54,20 @@ fn main() -> Result<(), Infallible> {
 
     let yellow_box = Container::new(Options {
         background_color: Some(Rgb888::YELLOW),
-        grow: 1,
+        layout_options: LayoutOptions {
+            grow: 1,
+            ..Default::default()
+        },
         width: Some(100),
         ..Default::default()
     });
 
     let magenta_box = Container::new(Options {
         background_color: Some(Rgb888::MAGENTA),
-        grow: 2,
+        layout_options: LayoutOptions {
+            grow: 2,
+            ..Default::default()
+        },
         width: Some(100),
         ..Default::default()
     });

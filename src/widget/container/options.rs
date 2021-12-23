@@ -1,5 +1,5 @@
 use super::{Alignment, Axis, Border, Insets, Justification};
-use crate::widget::Widget;
+use crate::widget::{LayoutOptions, Widget};
 use alloc::{boxed::Box, vec::Vec};
 use embedded_graphics::{draw_target::DrawTarget, primitives::CornerRadii};
 
@@ -13,9 +13,9 @@ where
     pub border: Option<Border<Display::Color>>,
     pub children: Vec<Box<dyn Widget<Display>>>,
     pub corner_radii: Option<CornerRadii>,
-    pub grow: u32,
     pub height: Option<u32>,
     pub justification: Justification,
+    pub layout_options: LayoutOptions,
     pub margin: Insets,
     pub padding: Insets,
     pub width: Option<u32>,
@@ -33,9 +33,9 @@ where
             border: Default::default(),
             children: Default::default(),
             corner_radii: Default::default(),
-            grow: Default::default(),
             height: Default::default(),
             justification: Default::default(),
+            layout_options: Default::default(),
             margin: Default::default(),
             padding: Default::default(),
             width: Default::default(),

@@ -1,4 +1,4 @@
-use super::{IntrinsicSize, Widget};
+use super::{IntrinsicSize, LayoutOptions, Widget};
 use embedded_graphics::{
     mono_font::MonoTextStyle,
     prelude::*,
@@ -9,6 +9,7 @@ use embedded_graphics::{
 #[derive(Clone, Copy)]
 pub struct Options<'font, Color> {
     pub character_style: MonoTextStyle<'font, Color>,
+    pub layout_options: LayoutOptions,
 }
 
 #[derive(Clone, Copy)]
@@ -44,7 +45,11 @@ where
         self.text(Point::zero()).bounding_box().size.into()
     }
 
-    fn draw(&self, display: &mut Display, origin: Point, size: Size) -> Result<(), Display::Error> {
+    fn layout_options(&self) -> LayoutOptions {
+        self.options.layout_options
+    }
+
+    fn draw(&self, display: &mut Display, origin: Point, _: Size) -> Result<(), Display::Error> {
         let text = self.text(origin);
         let mut display = display.clipped(&Rectangle::new(origin, size));
         text.draw(&mut display)?;
