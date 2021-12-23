@@ -49,7 +49,7 @@ where
         self.options.layout_options
     }
 
-    fn draw(&self, display: &mut Display, origin: Point, _: Size) -> Result<(), Display::Error> {
+    fn draw(&self, display: &mut Display, origin: Point, size: Size) -> Result<(), Display::Error> {
         let text = self.text(origin);
         let mut display = display.clipped(&Rectangle::new(origin, size));
         text.draw(&mut display)?;
