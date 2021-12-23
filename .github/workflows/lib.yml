@@ -1,4 +1,4 @@
-name: lib/examples
+name: lib
 on:
   push:
     branches: [ main ]
