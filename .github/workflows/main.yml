@@ -47,6 +47,10 @@ jobs:
         with:
           command: test
 
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          
       - uses: actions-rs/cargo@v1
         with:
           toolchain: nightly
