@@ -2,6 +2,7 @@ use super::{IntrinsicSize, Widget};
 use embedded_graphics::{
     mono_font::MonoTextStyle,
     prelude::*,
+    primitives::Rectangle,
     text::{self, Baseline},
 };
 
@@ -43,9 +44,10 @@ where
         self.text(Point::zero()).bounding_box().size.into()
     }
 
-    fn draw(&self, display: &mut Display, origin: Point, _: Size) -> Result<(), Display::Error> {
+    fn draw(&self, display: &mut Display, origin: Point, size: Size) -> Result<(), Display::Error> {
         let text = self.text(origin);
-        text.draw(display)?;
+        let mut display = display.clipped(&Rectangle::new(origin, size));
+        text.draw(&mut display)?;
 
         Ok(())
     }
