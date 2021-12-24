@@ -1,4 +1,5 @@
 pub mod container;
+pub mod image;
 pub mod text;
 
 mod axis_size;
