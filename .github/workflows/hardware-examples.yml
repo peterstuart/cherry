@@ -1,4 +1,4 @@
-name: Rust
+name: hardware-examples
 on:
   push:
     branches: [ main ]
@@ -18,27 +18,22 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
+            examples/ssd1306/target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     
-      - name: Install stable toolchain
+      - name: Install nightly toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
+          target: thumbv7em-none-eabihf
+          override: true
+          components: rustfmt, clippy
 
       - name: Install dependencies
         run: sudo apt install libsdl2-dev
-        
+
       - name: rustfmt
-        run: cargo fmt -- --check
+        run: cd examples/ssd1306 && cargo fmt -- --check
         
       - name: clippy
-        run: cargo clippy -- -D warnings && cargo clippy --tests -- -D warnings && cargo clippy --examples -- -D warnings
-        
-      - name: test
-        run: cargo test
-
-      - name: Check if README is up to date
-        run: |
-          cargo install cargo-readme || true
-          cargo readme > README.md
-          git diff --exit-code
+        run: cd examples/ssd1306 && cargo clippy -- -D warnings
