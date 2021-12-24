@@ -24,14 +24,14 @@ fn main() -> Result<(), Infallible> {
     let rgb_swatch = Container::new()
         .alignment(Alignment::Center)
         .axis(Axis::Horizontal)
-        .border(Some(Border {
+        .border(Border {
             color: Rgb888::BLACK,
             width: 1,
-        }))
-        .corner_radii(Some(CornerRadii::new(Size::new(10, 10))))
+        })
+        .corner_radii(CornerRadii::new(Size::new(10, 10)))
         .justification(Justification::SpaceBetween)
         .padding(Insets::all(10))
-        .width(Some(200))
+        .width(200)
         .children(vec![
             colored_container(Rgb888::RED, 25).boxed(),
             colored_container(Rgb888::GREEN, 40).boxed(),
@@ -39,26 +39,22 @@ fn main() -> Result<(), Infallible> {
         ]);
 
     let yellow_box = Container::new()
-        .background_color(Some(Rgb888::YELLOW))
-        .layout_options(
-            LayoutOptions::new()
-                .alignment(Some(Alignment::Stretch))
-                .grow(1),
-        );
+        .background_color(Rgb888::YELLOW)
+        .layout_options(LayoutOptions::new().alignment(Alignment::Stretch).grow(1));
 
     let magenta_box = Container::new()
-        .background_color(Some(Rgb888::MAGENTA))
+        .background_color(Rgb888::MAGENTA)
         .layout_options(LayoutOptions::new().grow(2))
-        .width(Some(100));
+        .width(100);
 
     let container = Container::new()
         .alignment(Alignment::Center)
-        .background_color(Some(Rgb888::WHITE))
-        .border(Some(Border {
+        .background_color(Rgb888::WHITE)
+        .border(Border {
             color: Rgb888::GREEN,
             width: 4,
-        }))
-        .corner_radii(Some(CornerRadii::new(Size::new(10, 10))))
+        })
+        .corner_radii(CornerRadii::new(Size::new(10, 10)))
         .justification(Justification::SpaceAround)
         .margin(Insets::all(20))
         .children(vec![
@@ -81,7 +77,7 @@ where
     Display: DrawTarget,
 {
     Container::new()
-        .background_color(Some(color))
-        .width(Some(size))
-        .height(Some(size))
+        .background_color(color)
+        .width(size)
+        .height(size)
 }

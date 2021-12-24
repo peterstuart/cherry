@@ -32,7 +32,7 @@ jobs:
         run: cargo fmt -- --check
         
       - name: clippy
-        run: cargo clippy -- -D warnings && cargo clippy --tests -- -D warnings && cargo clippy --examples -- -D warnings
+        run: cargo clippy -- -D warnings && cargo clippy --tests -- -D warnings && cargo clippy --examples -- -D warnings && cd cherry_macros && cargo clippy -- -D warnings
         
       - name: test
         run: cargo test
