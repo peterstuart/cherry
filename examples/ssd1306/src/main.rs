@@ -135,19 +135,19 @@ where
     Container::new()
         .alignment(Alignment::Center)
         .axis(Axis::Horizontal)
-        .border(Some(Border {
+        .border(Border {
             color: BinaryColor::On,
             width: 1,
-        }))
+        })
         .children(vec![
             block(block_size).boxed(),
             block(MAX_BLOCK_SIZE - block_size).boxed(),
             block(block_size).boxed(),
         ])
-        .corner_radii(Some(CornerRadii::new(Size::new(10, 10))))
+        .corner_radii(CornerRadii::new(Size::new(10, 10)))
         .justification(Justification::SpaceBetween)
         .padding(Insets::all(10))
-        .width(Some(200))
+        .width(200)
 }
 
 fn block<Display>(size: u32) -> Container<Display>
@@ -155,7 +155,7 @@ where
     Display: DrawTarget<Color = BinaryColor>,
 {
     Container::new()
-        .background_color(Some(BinaryColor::On))
-        .width(Some(size))
-        .height(Some(size))
+        .background_color(BinaryColor::On)
+        .width(size)
+        .height(size)
 }
