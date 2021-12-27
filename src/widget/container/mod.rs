@@ -153,8 +153,11 @@ where
             return Ok(());
         }
 
-        let total_children_main_axis_dimension =
-            self.content_size().for_axis(self.main_axis()).unwrap_or(0);
+        let total_children_main_axis_dimension = self
+            .content_size()
+            .for_axis(self.main_axis())
+            .unwrap_or(0)
+            .min(size.for_axis(self.main_axis()));
         let extra_main_axis_dimension =
             size.for_axis(self.main_axis()) - total_children_main_axis_dimension;
         let grow_total: u32 = self
@@ -279,5 +282,24 @@ where
         );
         let content_size = box_size.inset(inner_border).inset(self.padding);
         self.draw_children(display, content_origin, content_size)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use embedded_graphics::{mock_display::MockDisplay, pixelcolor::Rgb888};
+
+    #[test]
+    fn child_bigger_than_self() {
+        let mut display: MockDisplay<Rgb888> = MockDisplay::new();
+        let size = display.size();
+
+        let child = Container::new()
+            .width(Some(size.width + 10))
+            .height(Some(size.height + 10));
+        let container = Container::new().children(vec![child.boxed()]);
+
+        container.draw(&mut display, Point::zero(), size).unwrap()
     }
 }
