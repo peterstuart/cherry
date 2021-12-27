@@ -14,7 +14,13 @@ fn main() -> Result<(), Infallible> {
     let mut display: SimulatorDisplay<Rgb888> = SimulatorDisplay::new(Size::new(300, 300));
 
     let character_style = MonoTextStyle::new(&FONT_10X20, Rgb888::YELLOW);
-    let widget = Text::new(Options { character_style }, "Hello");
+    let widget = Text::new(
+        Options {
+            character_style,
+            layout_options: Default::default(),
+        },
+        "Hello",
+    );
     widget.draw(&mut display, Point::new(20, 20), Size::new(100, 100))?;
 
     let output_settings = OutputSettingsBuilder::new().build();

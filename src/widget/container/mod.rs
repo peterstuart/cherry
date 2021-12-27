@@ -124,7 +124,12 @@ where
             self.content_size().for_axis(self.main_axis()).unwrap_or(0);
         let extra_main_axis_dimension =
             size.for_axis(self.main_axis()) - total_children_main_axis_dimension;
-        let grow_total: u32 = self.options.children.iter().map(|child| child.grow()).sum();
+        let grow_total: u32 = self
+            .options
+            .children
+            .iter()
+            .map(|child| child.layout_options().grow)
+            .sum();
 
         let (unused_main_axis_dimension, grow_unit) = if grow_total > 0 {
             (0, extra_main_axis_dimension / grow_total)
@@ -155,7 +160,12 @@ where
         };
 
         for child in &self.options.children {
-            let default_size = match (self.options.alignment, self.main_axis()) {
+            let child_alignment = child
+                .layout_options()
+                .alignment
+                .unwrap_or(self.options.alignment);
+
+            let default_size = match (child_alignment, self.main_axis()) {
                 (Alignment::Stretch, Axis::Horizontal) => Size::new(0, size.height),
                 (Alignment::Stretch, Axis::Vertical) => Size::new(size.width, 0),
                 _ => Size::zero(),
@@ -165,9 +175,9 @@ where
                 .intrinsic_size()
                 .to_size_with_defaults(default_size)
                 .component_min(size);
-            child_size.add_to_axis(grow_unit * child.grow(), self.main_axis());
+            child_size.add_to_axis(grow_unit * child.layout_options().grow, self.main_axis());
 
-            let cross_axis_offset = match self.options.alignment {
+            let cross_axis_offset = match child_alignment {
                 Alignment::Stretch | Alignment::Start => 0,
                 Alignment::Center => {
                     (size.for_axis(self.cross_axis()) - child_size.for_axis(self.cross_axis())) / 2
@@ -213,8 +223,8 @@ where
         )
     }
 
-    fn grow(&self) -> u32 {
-        self.options.grow
+    fn layout_options(&self) -> super::LayoutOptions {
+        self.options.layout_options
     }
 
     fn draw(&self, display: &mut Display, origin: Point, size: Size) -> Result<(), Display::Error> {
