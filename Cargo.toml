@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 embedded-graphics = "0.7.1"
+cherry_macros = { path = "cherry_macros" }
 
 [dev-dependencies]
 embedded-graphics-simulator = "0.3.0"
