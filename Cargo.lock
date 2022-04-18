@@ -622,9 +622,9 @@ dependencies = [
 
 [[package]]
 name = "tinybmp"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f5d16234f376b597906f9e516cb8ed1dd00bf68c459b9723fab24418e2c0967"
+checksum = "629687b1341919b4feed6e6df8d72385c912286162bc6f774487e37341817a6b"
 dependencies = [
  "embedded-graphics",
  "nom",
