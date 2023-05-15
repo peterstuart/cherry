@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-embedded-graphics = "0.7.1"
+embedded-graphics = "0.8.0"
 cherry_macros = { path = "cherry_macros" }
 
 [dev-dependencies]
