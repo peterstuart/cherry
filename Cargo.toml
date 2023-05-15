@@ -8,5 +8,5 @@ embedded-graphics = "0.7.1"
 cherry_macros = { path = "cherry_macros" }
 
 [dev-dependencies]
-embedded-graphics-simulator = "0.3.0"
+embedded-graphics-simulator = "0.5.0"
 tinybmp = "0.3.1"
